@@ -284,13 +284,24 @@
 		}
 
 		.header h1 {
+			font-weight: var(--font-extrabold);
+			font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+			letter-spacing: var(--tracking-tight);
+			display: flex;
+			align-items: center;
+			gap: var(--spacing-2);
+		}
+
+		.header h1 .title {
 			background: var(--gradient-primary);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			background-clip: text;
-			font-weight: var(--font-extrabold);
-			font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
-			letter-spacing: var(--tracking-tight);
+		}
+
+		.header h1 .icon {
+			font-size: 1.2em;
+			display: inline-block;
 		}
 
 		.header-actions {
@@ -2332,8 +2343,8 @@
 		<!-- ==================== HEADER ==================== -->
 		<header class="header" role="banner">
 			<h1>
-				<span aria-hidden="true">📋</span>
-				Template Manager
+				<span class="icon" aria-hidden="true">📋</span>
+				<span class="title">Template Manager</span>
 			</h1>
 			<div class="header-actions" role="toolbar" aria-label="Main actions">
 				<!-- Import -->
