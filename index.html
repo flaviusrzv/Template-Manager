@@ -353,13 +353,18 @@
         display: flex;
         flex-direction: column;
         gap: var(--spacing-5);
-        height: fit-content;
+        max-height: calc(100vh - var(--spacing-6));
         position: sticky;
         top: var(--spacing-6);
         border: 1px solid var(--gray-100);
         transition:
           box-shadow var(--transition-base),
           transform var(--transition-base);
+      }
+
+      .sidebar nav {
+        overflow-y: auto;
+        min-height: 0;
       }
 
       /* sidebar is not interactive — no hover state */
@@ -2930,7 +2935,7 @@
       /* ━━━ Large desktop: 1280px+ ━━━ */
       @media (min-width: 1280px) {
         .main-content {
-          grid-template-columns: 300px 1fr;
+          grid-template-columns: 280px 1fr;
         }
       }
 
