@@ -2186,17 +2186,15 @@
       }
 
       .form-group--stretch {
-        flex: 1;
-        min-height: 0;
         display: flex;
         flex-direction: column;
         gap: var(--spacing-2);
       }
 
       .form-group--stretch textarea {
-        flex: 1;
-        min-height: 0;
-        resize: none;
+        min-height: 160px;
+        max-height: 35vh;
+        resize: vertical;
       }
 
       .form-hint {
@@ -2882,6 +2880,50 @@
         .toast {
           min-width: unset !important;
           width: 100%;
+        }
+      }
+
+      /* ━━━ Short viewport (laptops ~768px height) ━━━ */
+      @media (max-height: 820px) {
+        #templateModal .modal-content {
+          height: 95vh;
+          max-height: 95vh;
+        }
+
+        #templateForm {
+          padding: var(--spacing-4);
+          gap: var(--spacing-3);
+        }
+
+        .modal-header {
+          padding: var(--spacing-3) var(--spacing-5);
+        }
+
+        .modal-actions {
+          padding-top: var(--spacing-3);
+        }
+
+        .form-group--stretch textarea {
+          min-height: 120px;
+          max-height: 25vh;
+        }
+
+        .form-hint {
+          display: none;
+        }
+      }
+
+      /* ━━━ Very short viewport ━━━ */
+      @media (max-height: 650px) {
+        #templateModal .modal-content {
+          height: 100vh;
+          max-height: 100vh;
+          border-radius: 0;
+        }
+
+        .form-group--stretch textarea {
+          min-height: 80px;
+          max-height: 20vh;
         }
       }
 
@@ -11776,16 +11818,6 @@
 				`;
         }
       }
-      /*
-	🔝 Scroll to Top Button
-	→ Buton cu săgeată ↑ care te duce instant la început când scrollezi mult în jos
-	
-	🚀 Virtual Scrolling
-	→ Renderează doar 12 cards vizibile (nu toate 1000) = scrolling super rapid fără lag
-	
-	👁️ Click to View
-	→ Click pe textul trunchiat "..." → vezi tot textul într-un popup
-*/
     </script>
   </body>
 </html>
