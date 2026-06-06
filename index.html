@@ -267,6 +267,11 @@
         outline-offset: 2px;
       }
 
+      .category-item:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--primary-500);
+      }
+
       ::selection {
         background: var(--primary-200);
         color: var(--primary-900);
@@ -7549,6 +7554,8 @@
 
             this.eventHandlers.categoryDragOver = (e) => {
               try {
+                if (!this.draggedTemplate) return;
+
                 const categoryItem = e.target.closest(".category-item");
                 if (!categoryItem) return;
 
@@ -7560,15 +7567,13 @@
                   return;
                 }
 
-                if (this.draggedTemplate) {
-                  const template = this.templates.find(
-                    (t) => t.id === this.draggedTemplate,
-                  );
-                  if (template && template.category === categoryId) {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "none";
-                    return;
-                  }
+                const template = this.templates.find(
+                  (t) => t.id === this.draggedTemplate,
+                );
+                if (template && template.category === categoryId) {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "none";
+                  return;
                 }
 
                 e.preventDefault();
@@ -7638,6 +7643,8 @@
             this.eventHandlers.categoryDrop = async (e) => {
               try {
                 e.preventDefault();
+                if (!this.draggedTemplate) return;
+
                 const categoryItem = e.target.closest(".category-item");
                 if (!categoryItem) return;
 
