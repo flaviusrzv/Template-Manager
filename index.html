@@ -3399,7 +3399,7 @@
          */
         normalizeDiacritics(text) {
           if (!text) return "";
-          return text.normalize("NFD").replace(/[̀-ͯ]/g, "");
+          return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         },
 
         /**
@@ -3494,7 +3494,10 @@
           const max =
             typeof maxLength === "number" && maxLength > 0 ? maxLength : 200;
 
-          return String(str).trim().substring(0, max);
+          // Slice pe codepoints pentru a nu rupe surrogate pairs / emoji
+          const trimmed = String(str).trim();
+          const cps = Array.from(trimmed);
+          return cps.length <= max ? trimmed : cps.slice(0, max).join("");
         },
 
         /**
@@ -3567,7 +3570,23 @@
             // Check size using byte length (not char length) for accurate measurement
             const byteSize = new Blob([jsonString]).size;
             if (byteSize > this.MAX_SIZE) {
-              throw new Error("Data exceeds storage limit");
+              throw new Error("Data exceeds per-key storage limit");
+            }
+
+            // Total limit across known keys (exclude current key, then add new size)
+            let otherTotal = 0;
+            Object.values(this.KEYS).forEach((k) => {
+              if (k === key) return;
+              const v = localStorage.getItem(k);
+              if (v) otherTotal += new Blob([v]).size;
+            });
+            if (otherTotal + byteSize > this.MAX_SIZE) {
+              return {
+                success: false,
+                error: "QUOTA_EXCEEDED",
+                message:
+                  "Total storage would exceed limit. Export or delete data first.",
+              };
             }
 
             localStorage.setItem(key, jsonString);
@@ -3648,6 +3667,7 @@
           }
 
           let invalidCount = 0;
+          const seenIds = new Set();
 
           const validated = templates
             .filter((t) => {
@@ -3656,7 +3676,16 @@
                 return false;
               }
 
-              const hasValidId = t.id && String(t.id).trim().length > 0;
+              const idStr = t.id ? String(t.id).trim() : "";
+              if (!idStr) {
+                invalidCount++;
+                return false;
+              }
+              if (seenIds.has(idStr)) {
+                // Duplicate template id — keep only the first occurrence
+                invalidCount++;
+                return false;
+              }
 
               const nameStr =
                 t.name && typeof t.name !== "object"
@@ -3677,16 +3706,12 @@
                 contentStr.length >= MIN_CONTENT_LENGTH &&
                 contentStr.length <= MAX_CONTENT_LENGTH;
 
-              if (
-                !hasValidId ||
-                !hasValidName ||
-                !hasValidCategory ||
-                !hasValidContent
-              ) {
+              if (!hasValidName || !hasValidCategory || !hasValidContent) {
                 invalidCount++;
                 return false;
               }
 
+              seenIds.add(idStr);
               return true;
             })
             .map((t) => {
@@ -3741,7 +3766,7 @@
             });
 
           if (invalidCount > 0) {
-            log.warn(`Filtered ${invalidCount} invalid templates`);
+            log.warn(`Filtered ${invalidCount} invalid/duplicate templates`);
           }
 
           return validated;
@@ -3832,11 +3857,11 @@
             const trimmedName = data.name ? data.name.trim() : "";
             const trimmedContent = data.content ? data.content.trim() : "";
 
-            if (!trimmedName || trimmedName.length < 3) {
+            if (!trimmedName) {
+              errors.push("Template name is required");
+            } else if (trimmedName.length < 3) {
               errors.push("Template name must be at least 3 characters");
-            }
-
-            if (trimmedName.length > 200) {
+            } else if (trimmedName.length > 200) {
               errors.push("Template name is too long (max 200 characters)");
             }
 
@@ -3862,11 +3887,11 @@
               }
             }
 
-            if (!trimmedContent || trimmedContent.length < 10) {
+            if (!trimmedContent) {
+              errors.push("Template content is required");
+            } else if (trimmedContent.length < 10) {
               errors.push("Template content must be at least 10 characters");
-            }
-
-            if (trimmedContent.length > 5000) {
+            } else if (trimmedContent.length > 5000) {
               errors.push("Template content is too long (max 5000 characters)");
             }
 
@@ -4120,6 +4145,7 @@
 
               document.body.appendChild(overlay);
               this.activeDialog = overlay;
+              this._opener = document.activeElement;
 
               const dialogBox = overlay.querySelector(".dialog-box");
               const focusableElements = dialogBox.querySelectorAll(
@@ -4240,13 +4266,21 @@
                 overlay.removeEventListener("click", handleClick);
                 document.removeEventListener("keydown", handleKeydown);
 
+                // Restore focus to whoever opened the dialog (a11y)
+                const opener = this._opener;
+                this._opener = null;
+                if (opener && document.body.contains(opener)) {
+                  try { opener.focus(); } catch (_) {}
+                }
+
+                // Eliberează slotul imediat ca să nu pierdem dialogs ulterioare
+                if (this.activeDialog === overlay) {
+                  this.activeDialog = null;
+                }
+
                 overlay.classList.add("dialog-closing");
 
                 setTimeout(() => {
-                  if (this.activeDialog === overlay) {
-                    this.activeDialog = null;
-                  }
-
                   if (overlay.parentNode) {
                     overlay.remove();
                   }
@@ -4286,6 +4320,16 @@
           });
         },
       };
+
+      // Safety: dacă fereastra pierde focus în timpul unui drag pe overlay,
+      // resetăm starea pentru a evita închideri accidentale la următorul mouseup.
+      window.addEventListener("blur", () => {
+        document.querySelectorAll(".dialog-overlay").forEach((o) => {
+          try {
+            o.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+          } catch (_) {}
+        });
+      });
 
       /* ============================================================================
            🍞 TOAST MANAGER - Notificări user-friendly
@@ -4977,7 +5021,7 @@
          */
         normalizeDiacritics(text) {
           if (!text) return "";
-          return text.normalize("NFD").replace(/[̀-ͯ]/g, "");
+          return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         }
 
         /**
@@ -6168,7 +6212,14 @@
           let loadResult;
 
           try {
-            loadResult = await this.loadData(true);
+            // Nu salvăm automat la boot — cleanup-ul se persistă explicit mai jos
+            // pentru a evita declanșarea de storage events inutile în alte tab-uri.
+            this._localWrite = true;
+            loadResult = await this.loadData(false);
+            if (loadResult?.stats?.cleaned > 0) {
+              await this.saveData();
+            }
+            queueMicrotask(() => { this._localWrite = false; });
 
             if (!loadResult.success) {
               log.error("Data load failed:", {
@@ -6257,8 +6308,17 @@
           let isSyncing = false;
 
           this.storageEventListener = (e) => {
+            // Ignorăm storage events declanșate de scrieri locale (ex.: cleanup la boot)
+            if (this._localWrite) {
+              log.info("Local write in progress, ignoring storage event");
+              return;
+            }
+
             if (isSyncing) {
-              log.info("Sync already in progress, skipping");
+              // Marchează că a venit ceva în timpul sync-ului curent;
+              // re-rulăm la final pentru a nu pierde evenimente.
+              this._syncPending = true;
+              log.info("Sync already in progress, queued");
               return;
             }
 
@@ -6391,6 +6451,13 @@
               } finally {
                 isSyncing = false;
                 this.syncTimeout = null;
+                if (this._syncPending) {
+                  this._syncPending = false;
+                  // Re-rulăm sync-ul cu un event sintetic (full sync)
+                  try {
+                    this.storageEventListener({ key: null });
+                  } catch (_) {}
+                }
               }
             }, DEBOUNCE_DELAY);
           };
@@ -7933,12 +8000,19 @@
             }
 
             this.eventHandlers.importChange = (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+
               try {
-                const file = e.target.files[0];
-                if (!file) return;
+                const MAX_IMPORT_SIZE = 5 * 1024 * 1024; // 5MB
+                if (file.size > MAX_IMPORT_SIZE) {
+                  ToastManager.error(
+                    `File too large (max 5MB). Size: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
+                  );
+                  return;
+                }
 
                 const reader = new FileReader();
-
                 reader.onload = (loadEvent) => {
                   try {
                     const data = JSON.parse(loadEvent.target.result);
@@ -7948,26 +8022,17 @@
                     ToastManager.error("Invalid JSON file!");
                   }
                 };
-
                 reader.onerror = () => {
                   log.error("File read error");
                   ToastManager.error("Error reading file!");
                 };
-
-                const MAX_IMPORT_SIZE = 5 * 1024 * 1024; // 5MB
-                if (file.size > MAX_IMPORT_SIZE) {
-                  ToastManager.error(
-                    `File too large (max 5MB). Size: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
-                  );
-                  e.target.value = "";
-                  return;
-                }
-
                 reader.readAsText(file);
-                e.target.value = "";
               } catch (error) {
                 log.error("Import change handler error:", error);
                 ToastManager.error("Import failed. Please try again.");
+              } finally {
+                // Permite re-selectarea aceluiași fișier ulterior
+                e.target.value = "";
               }
             };
 
@@ -8438,9 +8503,13 @@
 
             const confirmed = await DialogManager.confirm({
               title: "Delete Template",
-              message: `Are you sure you want to delete "${Utils.escapeHtml(template.name)}"?\n
-							Category: ${categoryInfo}
-							${template.tags?.length > 0 ? `Tags: ${template.tags.join(", ")}` : ""}`,
+              // formatMessage face escape intern — nu mai aplicăm escapeHtml aici
+              message:
+                `Are you sure you want to delete "${template.name}"?\n\n` +
+                `Category: ${categoryInfo}` +
+                (template.tags?.length > 0
+                  ? `\nTags: ${template.tags.join(", ")}`
+                  : ""),
               confirmText: "Delete",
               cancelText: "Cancel",
               type: "danger",
@@ -8842,8 +8911,9 @@
 
               const confirmed = await DialogManager.confirm({
                 title: "Unsaved Changes",
-                message: `You have unsaved changes in "${Utils.escapeHtml(currentTemplateName)}".\n
-								Do you want to discard them and edit "${Utils.escapeHtml(newTemplateName)}"?`,
+                message:
+                  `You have unsaved changes in "${currentTemplateName}".\n\n` +
+                  `Do you want to discard them and edit "${newTemplateName}"?`,
                 confirmText: "Discard & Continue",
                 cancelText: "Keep Editing",
                 type: "warning",
@@ -10738,12 +10808,12 @@
 
             this.lastFocusedElement = document.activeElement;
 
-            setTimeout(() => {
+            requestAnimationFrame(() => {
               const firstInput = document.getElementById("templateName");
               if (firstInput) {
                 firstInput.focus();
               }
-            }, 100);
+            });
 
             document.body.style.overflow = "hidden";
           } catch (error) {
@@ -10844,32 +10914,36 @@
               }
             }
 
-            // Buttons — { once: true } pentru auto-cleanup la fiecare deschidere
-            const copyBtn = document.getElementById("previewCopyBtn");
+            // Buttons — clone-replace pentru a elimina orice handler vechi legat
+            // de un templateId anterior (evită copierea/editarea greșită).
+            const swap = (id) => {
+              const el = document.getElementById(id);
+              if (!el) return null;
+              const clone = el.cloneNode(true);
+              el.parentNode.replaceChild(clone, el);
+              return clone;
+            };
+
+            const copyBtn = swap("previewCopyBtn");
             if (copyBtn) {
-              copyBtn.addEventListener(
-                "click",
-                () => {
-                  this.copyTemplateContent(templateId);
-                  this.closePreviewModal();
-                },
-                { once: true },
-              );
+              copyBtn.addEventListener("click", () => {
+                this.copyTemplateContent(templateId);
+                this.closePreviewModal();
+              });
             }
 
-            const editBtn = document.getElementById("previewEditBtn");
+            const editBtn = swap("previewEditBtn");
             if (editBtn) {
-              editBtn.addEventListener(
-                "click",
-                () => {
-                  this.closePreviewModal();
-                  this.editTemplate(templateId);
-                },
-                { once: true },
-              );
+              editBtn.addEventListener("click", () => {
+                this.closePreviewModal();
+                this.editTemplate(templateId);
+              });
             }
 
-            this._previewLastFocus = document.activeElement;
+            // Salvăm focus-ul anterior DOAR la prima deschidere
+            if (!modal.classList.contains("show")) {
+              this._previewLastFocus = document.activeElement;
+            }
             this._previewTemplateId = templateId;
 
             modal.classList.add("show");
@@ -11242,7 +11316,7 @@
             ) {
               const proceed = await DialogManager.confirm({
                 title: "Version Mismatch",
-                message: `This file was exported with version ${Utils.escapeHtml(data.version)}. Current version is 1.0. Import anyway?`,
+                message: `This file was exported with version ${data.version}. Current version is 1.0. Import anyway?`,
                 confirmText: "Import",
                 cancelText: "Cancel",
                 type: "warning",
@@ -11273,25 +11347,40 @@
               });
             }
 
+            // Filtrează template-urile cu categorie inexistentă în setul importat
+            const validCatIds = new Set(categoriesToImport.map((c) => c.id));
+            const beforeOrphan = validatedTemplates.length;
+            const cleanedTemplates = validatedTemplates.filter((t) =>
+              validCatIds.has(t.category),
+            );
+            const orphanCount = beforeOrphan - cleanedTemplates.length;
+
             const invalidTemplatesCount =
               data.templates.length - validatedTemplates.length;
             const invalidCategoriesCount =
               data.categories.length - validatedCategories.length;
 
             let warningMessage = "";
-            if (invalidTemplatesCount > 0 || invalidCategoriesCount > 0) {
+            if (
+              invalidTemplatesCount > 0 ||
+              invalidCategoriesCount > 0 ||
+              orphanCount > 0
+            ) {
               warningMessage = "\n\nWarning: ";
               if (invalidTemplatesCount > 0) {
                 warningMessage += `${invalidTemplatesCount} invalid templates will be skipped. `;
               }
               if (invalidCategoriesCount > 0) {
-                warningMessage += `${invalidCategoriesCount} invalid categories will be skipped.`;
+                warningMessage += `${invalidCategoriesCount} invalid categories will be skipped. `;
+              }
+              if (orphanCount > 0) {
+                warningMessage += `${orphanCount} templates skipped (orphaned categories).`;
               }
             }
 
             const confirmed = await DialogManager.confirm({
               title: "Import Data",
-              message: `You are about to import ${validatedTemplates.length} templates and ${categoriesToImport.length} categories. This will overwrite all existing data.${warningMessage}\n\nContinue?`,
+              message: `You are about to import ${cleanedTemplates.length} templates and ${categoriesToImport.length} categories. This will overwrite all existing data.${warningMessage}\n\nContinue?`,
               confirmText: "Import",
               cancelText: "Cancel",
               type: "warning",
@@ -11300,7 +11389,7 @@
             if (!confirmed) return;
 
             this.categories = categoriesToImport;
-            this.templates = validatedTemplates;
+            this.templates = cleanedTemplates;
             this.activeCategory = "toate";
 
             const saveResult = await this.saveData();
@@ -11308,10 +11397,12 @@
             if (saveResult.success) {
               this.renderUI({ all: true });
 
-              let successMessage = `Imported ${validatedTemplates.length} templates and ${categoriesToImport.length} categories!`;
+              let successMessage = `Imported ${cleanedTemplates.length} templates and ${categoriesToImport.length} categories!`;
 
-              if (invalidTemplatesCount > 0 || invalidCategoriesCount > 0) {
-                successMessage += ` (${invalidTemplatesCount + invalidCategoriesCount} invalid items skipped)`;
+              const skipped =
+                invalidTemplatesCount + invalidCategoriesCount + orphanCount;
+              if (skipped > 0) {
+                successMessage += ` (${skipped} items skipped)`;
               }
 
               ToastManager.success(successMessage, 5000);
