@@ -378,6 +378,19 @@
 		  color: var(--gray-900);
 		  padding-bottom: var(--spacing-3);
 		  border-bottom: 2px solid var(--gray-200);
+		  display: flex;
+		  align-items: center;
+		  gap: var(--spacing-2);
+		}
+
+		.sidebar h3 > span:first-child {
+		  flex-shrink: 0;
+		}
+
+		.sidebar h3 .inactive-toggle {
+		  margin-left: auto;
+		  width: 28px;
+		  height: 28px;
 		}
 
 		.content-area {
@@ -385,6 +398,7 @@
 		  flex-direction: column;
 		  gap: var(--spacing-6);
 		}
+
 
 		/* ═══════════════════════════════════════════════════════════════════════════
 		   🎯 4. COMPONENTS
@@ -557,6 +571,171 @@
 
 		.search-container input[type="search"] {
 		  padding-right: var(--spacing-12);
+		}
+
+		/* ━━━ INACTIVE TOGGLE (eye button) ━━━ */
+
+		.inactive-toggle {
+		  display: inline-flex;
+		  align-items: center;
+		  justify-content: center;
+		  position: relative;
+		  width: 32px;
+		  height: 32px;
+		  border-radius: var(--radius-lg);
+		  border: 1px solid transparent;
+		  background: transparent;
+		  color: var(--gray-400);
+		  cursor: pointer;
+		  flex-shrink: 0;
+		  transition:
+		    background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+		    border-color 150ms cubic-bezier(0.2, 0, 0, 1),
+		    color 150ms cubic-bezier(0.2, 0, 0, 1),
+		    box-shadow 150ms cubic-bezier(0.2, 0, 0, 1),
+		    transform 200ms cubic-bezier(0.2, 0, 0, 1);
+		}
+
+		.inactive-toggle:hover {
+		  background: var(--gray-100);
+		  color: var(--gray-700);
+		  border-color: var(--gray-200);
+		  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+		}
+
+		.inactive-toggle:focus-visible {
+		  outline: 2px solid var(--primary-500);
+		  outline-offset: 2px;
+		}
+
+		.inactive-toggle:active {
+		  transform: scale(0.92);
+		}
+
+		/* Active state (showing inactive) — eye open, primary color */
+		.inactive-toggle[aria-pressed="true"] {
+		  color: var(--primary-500);
+		  background: var(--primary-50);
+		  border-color: var(--primary-200);
+		}
+
+		.inactive-toggle[aria-pressed="true"]:hover {
+		  background: var(--primary-100);
+		  border-color: var(--primary-300);
+		  color: var(--primary-600);
+		  box-shadow: 0 1px 3px rgba(102, 126, 234, 0.12);
+		}
+
+		/* Eye icons */
+		.inactive-toggle .eye-icon,
+		.inactive-toggle .eye-off-icon {
+		  transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1);
+		}
+
+		/* When pressed (showing inactive): show eye-open, hide eye-off */
+		.inactive-toggle[aria-pressed="true"] .eye-icon {
+		  display: block;
+		}
+
+		.inactive-toggle[aria-pressed="true"] .eye-off-icon {
+		  display: none;
+		}
+
+		/* When not pressed (hiding inactive): show eye-off, hide eye-open */
+		.inactive-toggle[aria-pressed="false"] .eye-icon {
+		  display: none;
+		}
+
+		.inactive-toggle[aria-pressed="false"] .eye-off-icon {
+		  display: block;
+		}
+
+		/* Badge — count of inactive templates */
+		.inactive-badge {
+		  position: absolute;
+		  top: -4px;
+		  right: -4px;
+		  min-width: 16px;
+		  height: 16px;
+		  padding: 0 4px;
+		  border-radius: var(--radius-full);
+		  background: var(--gray-400);
+		  color: white;
+		  font-size: 10px;
+		  font-weight: var(--font-bold);
+		  line-height: 16px;
+		  text-align: center;
+		  pointer-events: none;
+		  transition:
+		    background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+		    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+		  transform: scale(0);
+		}
+
+		.inactive-toggle[aria-pressed="true"] .inactive-badge {
+		  background: var(--primary-500);
+		  transform: scale(1);
+		}
+
+		.inactive-toggle[aria-pressed="false"] .inactive-badge {
+		  background: var(--gray-400);
+		  transform: scale(1);
+		}
+
+		/* Hide badge when 0 inactive */
+		.inactive-badge[data-empty="true"] {
+		  display: none;
+		}
+
+		/* Touch */
+		@media (hover: none) and (pointer: coarse) {
+		  .inactive-toggle {
+		    width: 44px;
+		    height: 44px;
+		  }
+
+		  .sidebar h3 .inactive-toggle {
+		    width: 44px;
+		    height: 44px;
+		  }
+		}
+
+		/* Dark mode */
+		@media (prefers-color-scheme: dark) {
+		  .inactive-toggle {
+		    color: var(--gray-500);
+		  }
+
+		  .inactive-toggle:hover {
+		    background: var(--gray-50);
+		    color: var(--gray-700);
+		    border-color: var(--gray-300);
+		  }
+
+		  .inactive-toggle[aria-pressed="true"] {
+		    color: var(--primary-400);
+		    background: color-mix(in srgb, var(--primary-500) 15%, transparent);
+		    border-color: var(--primary-400);
+		  }
+
+		  .inactive-toggle[aria-pressed="true"]:hover {
+		    background: color-mix(in srgb, var(--primary-500) 25%, transparent);
+		    box-shadow: 0 1px 3px color-mix(in srgb, var(--primary-500) 15%, transparent);
+		  }
+		}
+
+		/* Reduced motion */
+		@media (prefers-reduced-motion: reduce) {
+		  .inactive-toggle,
+		  .inactive-toggle .eye-icon,
+		  .inactive-toggle .eye-off-icon,
+		  .inactive-badge {
+		    transition: none;
+		  }
+
+		  .inactive-toggle:active {
+		    transform: none;
+		  }
 		}
 
 		input[type="search"]::-webkit-search-cancel-button {
@@ -1216,7 +1395,7 @@
 		  transition:
 			color var(--transition-fast),
 			background-color var(--transition-fast);
-		  
+
 		}
 
 		.category-context-menu button:hover {
@@ -1450,44 +1629,184 @@
 		  flex-shrink: 0;
 		}
 
-		.drag-handle {
+		/* ━━━ TOGGLE SWITCH (premium) ━━━ */
+
+		.toggle-switch {
+		  --toggle-w: 38px;
+		  --toggle-h: 22px;
+		  --toggle-thumb: 18px;
+		  --toggle-offset: 16px;
+
+		  display: inline-flex;
+		  align-items: center;
+		  justify-content: flex-start;
+		  flex-shrink: 0;
+		  width: var(--toggle-w);
+		  height: var(--toggle-h);
+		  border-radius: var(--radius-full);
+		  background: var(--gray-300);
+		  border: none;
+		  cursor: pointer;
+		  padding: 2px;
+		  position: relative;
+		  transition:
+		    background-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
+		    box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+		  box-shadow:
+		    inset 0 1px 3px rgba(0, 0, 0, 0.12),
+		    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+		  /* Extended hit area — 44px clickable via transparent outline */
+		  outline: 6px solid transparent;
+		  outline-offset: -6px;
+		}
+
+		/* Active state — category color glow */
+		.toggle-switch[aria-checked="true"] {
+		  background: var(--category-color, var(--success-500));
+		  box-shadow:
+		    inset 0 1px 3px rgba(0, 0, 0, 0.15),
+		    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+		    0 0 0 0 var(--category-color, var(--success-500));
+		  animation: toggleGlow 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+		}
+
+		@keyframes toggleGlow {
+		  to {
+		    box-shadow:
+		      inset 0 1px 3px rgba(0, 0, 0, 0.15),
+		      inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+		      0 0 12px -2px color-mix(in srgb, var(--category-color, var(--success-500)) 50%, transparent);
+		  }
+		}
+
+		/* Focus — visible ring */
+		.toggle-switch:focus-visible {
+		  outline: 2px solid var(--primary-500);
+		  outline-offset: 2px;
+		}
+
+		.toggle-thumb {
+		  width: var(--toggle-thumb);
+		  height: var(--toggle-thumb);
+		  border-radius: var(--radius-full);
+		  background: linear-gradient(135deg, #ffffff 0%, #f0f0f5 100%);
+		  box-shadow:
+		    0 1px 3px rgba(0, 0, 0, 0.2),
+		    0 0 0 1px rgba(0, 0, 0, 0.03);
+		  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+		  transform: translateX(0);
+		  pointer-events: none;
+		  position: relative;
 		  display: flex;
 		  align-items: center;
 		  justify-content: center;
-		  width: 28px;
-		  height: 28px;
-		  flex-shrink: 0;
-		  cursor: grab;
-		  opacity: 0.4;
-		  border-radius: var(--radius-md);
+		}
+
+		/* Thumb moves right when ON */
+		.toggle-switch[aria-checked="true"] .toggle-thumb {
+		  transform: translateX(var(--toggle-offset));
+		  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+		}
+
+		/* Micro checkmark icon — appears when ON */
+		.toggle-thumb::after {
+		  content: "";
+		  width: 8px;
+		  height: 8px;
+		  border-right: 2px solid var(--category-color, var(--success-500));
+		  border-bottom: 2px solid var(--category-color, var(--success-500));
+		  transform: rotate(45deg) scale(0);
+		  opacity: 0;
 		  transition:
-			opacity var(--transition-fast),
-			background var(--transition-fast);
-		  user-select: none;
+		    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1) 80ms,
+		    opacity 120ms ease 80ms;
+		  margin-top: -2px;
 		}
 
-		.drag-dots {
-		  display: block;
-		  color: var(--gray-500);
-		  pointer-events: none;
-		  transition: color var(--transition-fast);
-		}
-
-		.template-card:hover .drag-handle {
-		  opacity: 0.5;
-		}
-
-		.drag-handle:hover {
+		.toggle-switch[aria-checked="true"] .toggle-thumb::after {
+		  transform: rotate(45deg) scale(1);
 		  opacity: 1;
-		  background: var(--gray-100, #f3f4f6);
 		}
 
-		.drag-handle:hover .drag-dots {
-		  color: var(--category-color, var(--primary-500));
+		/* Hover — subtle darken + lift */
+		.toggle-switch:hover:not([aria-checked="true"]) {
+		  background: var(--gray-400);
 		}
 
-		.drag-handle:active {
-		  cursor: grabbing;
+		.toggle-switch[aria-checked="true"]:hover {
+		  filter: brightness(0.92);
+		}
+
+		.toggle-switch:hover .toggle-thumb {
+		  box-shadow:
+		    0 2px 6px rgba(0, 0, 0, 0.25),
+		    0 0 0 1px rgba(0, 0, 0, 0.04);
+		}
+
+		/* Active press — no layout shift */
+		.toggle-switch:active .toggle-thumb {
+		  transform: translateX(0) scale(0.9);
+		}
+
+		.toggle-switch[aria-checked="true"]:active .toggle-thumb {
+		  transform: translateX(var(--toggle-offset)) scale(0.9);
+		}
+
+		/* Touch — larger */
+		@media (hover: none) and (pointer: coarse) {
+		  .toggle-switch {
+		    --toggle-w: 44px;
+		    --toggle-h: 24px;
+		    --toggle-thumb: 20px;
+		    --toggle-offset: 20px;
+		  }
+		}
+
+		/* Dark mode */
+		@media (prefers-color-scheme: dark) {
+		  .toggle-switch {
+		    background: var(--gray-600);
+		    box-shadow:
+		      inset 0 1px 3px rgba(0, 0, 0, 0.3),
+		      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+		  }
+
+		  .toggle-switch[aria-checked="true"] {
+		    background: var(--category-color, var(--success-500));
+		    box-shadow:
+		      inset 0 1px 3px rgba(0, 0, 0, 0.3),
+		      inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+		      0 0 12px -2px color-mix(in srgb, var(--category-color, var(--success-500)) 50%, transparent);
+		  }
+
+		  .toggle-thumb {
+		    background: linear-gradient(135deg, #e8e8f0 0%, #c8c8d8 100%);
+		  }
+
+		  .toggle-switch[aria-checked="true"] .toggle-thumb {
+		    background: linear-gradient(135deg, #f8f8fc 0%, #e8e8f0 100%);
+		  }
+
+		  .toggle-switch:hover:not([aria-checked="true"]) {
+		    background: var(--gray-500);
+		  }
+		}
+
+		/* Reduced motion */
+		@media (prefers-reduced-motion: reduce) {
+		  .toggle-switch,
+		  .toggle-thumb,
+		  .toggle-thumb::after {
+		    transition: none;
+		    animation: none;
+		  }
+
+		  .toggle-switch[aria-checked="true"] {
+		    animation: none;
+		    box-shadow:
+		      inset 0 1px 3px rgba(0, 0, 0, 0.15),
+		      inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+		  }
 		}
 
 		.template-title {
@@ -1769,17 +2088,6 @@
 		  border-color: #fecaca;
 		}
 
-		.card-btn-group button[data-action="activate"]:hover {
-		  background: #ecfdf5;
-		  color: #065f46;
-		  border-color: #a7f3d0;
-		}
-
-		.card-btn-group button[data-action="deactivate"]:hover {
-		  background: var(--warning-50);
-		  color: var(--warning-700);
-		  border-color: #fde68a;
-		}
 
 		.template-card.inactive {
 		  opacity: 0.6;
@@ -2584,6 +2892,7 @@
 			padding: var(--spacing-3);
 		  }
 
+
 		  #statsGrid {
 			grid-template-columns: repeat(2, 1fr);
 			gap: var(--spacing-3);
@@ -2914,6 +3223,24 @@
           <h3 id="categories-heading">
             <span aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
             <span>Categories</span>
+            <button
+              type="button"
+              class="inactive-toggle"
+              id="showInactiveFilter"
+              aria-pressed="true"
+              aria-label="Show inactive templates"
+              title="Show inactive templates"
+            >
+              <svg class="eye-icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-off-icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+              <span class="inactive-badge" id="inactiveBadge" aria-hidden="true">0</span>
+            </button>
           </h3>
           <nav aria-labelledby="categories-heading">
             <ul
@@ -3447,6 +3774,7 @@ const StorageManager = {
   KEYS: {
     TEMPLATES: "templates",
     CATEGORIES: "categories",
+    SHOW_INACTIVE: "showInactive",
   },
 
   MAX_SIZE: 4.5 * 1024 * 1024, // 4.5MB warning threshold
@@ -3916,10 +4244,10 @@ const DialogManager = {
     const content = `
 					${formattedMessage ? `<div class="dialog-message">${formattedMessage}</div>` : ""}
 					<div class="dialog-input-wrapper">
-						<input 
-							type="text" 
+						<input
+							type="text"
 							id="${inputId}"
-							class="dialog-input" 
+							class="dialog-input"
 							placeholder="${Utils.escapeHtml(placeholder)}"
 							value="${Utils.escapeHtml(defaultValue)}"
 							maxlength="${maxlength}"
@@ -4860,6 +5188,12 @@ class SmartSearchManager {
         );
       }
 
+      // Filter out inactive if showInactive is false
+      if (!this.app.showInactive) {
+        templates = templates.filter((t) => t && t.active !== false);
+      }
+
+      // Keep totals and search results consistent when the filter changes.
       this.state.totalSearched = templates.length;
 
       // ==========================================
@@ -6102,12 +6436,14 @@ class TemplateManager {
     this.categories = [];
     this.activeCategory = "toate";
     this.searchTerm = "";
+    this.showInactive = true; // Show inactive templates by default
     this.smartSearch = null;
     this.editingTemplate = null;
     this.draggedTemplate = null;
     this.lastFocusedElement = null;
     this.storageEventListener = null;
     this.syncTimeout = null;
+    this._toggleRepositionTimer = null;
 
     /**
      * Prevents concurrent saves to localStorage
@@ -6142,8 +6478,10 @@ class TemplateManager {
       searchInput: null,
       searchClear: null,
       searchEscape: null,
+      showInactiveChange: null,
       emptyStateClick: null,
       templateGridClick: null,
+      templateGridKeydown: null,
       gridDragStart: null,
       gridDragEnd: null,
       gridDragOver: null,
@@ -6224,6 +6562,22 @@ class TemplateManager {
       ToastManager.warning("Could not load saved data. Starting fresh.", 4000);
     }
 
+    // Load showInactive preference from localStorage
+    try {
+      const saved = localStorage.getItem(StorageManager.KEYS.SHOW_INACTIVE);
+      if (saved !== null) {
+        this.showInactive = JSON.parse(saved);
+        const filterBtn = document.getElementById("showInactiveFilter");
+        if (filterBtn) {
+          filterBtn.setAttribute("aria-pressed", String(this.showInactive));
+          filterBtn.setAttribute("aria-label", this.showInactive ? "Hide inactive templates" : "Show inactive templates");
+          filterBtn.title = this.showInactive ? "Hide inactive templates" : "Show inactive templates";
+        }
+      }
+    } catch (err) {
+      log.warn("Could not load showInactive preference:", err);
+    }
+
     try {
       this.renderUI({ all: true });
       this.setupEventListeners();
@@ -6273,6 +6627,7 @@ class TemplateManager {
     const SYNC_KEYS = [
       StorageManager.KEYS.TEMPLATES,
       StorageManager.KEYS.CATEGORIES,
+      StorageManager.KEYS.SHOW_INACTIVE,
     ];
     let isSyncing = false;
 
@@ -6317,6 +6672,26 @@ class TemplateManager {
             log.warn("Sync with modal open - limited sync");
 
             await this.loadData(false);
+
+            // Sync showInactive preference from localStorage
+            try {
+              const savedShowInactive = localStorage.getItem(StorageManager.KEYS.SHOW_INACTIVE);
+              if (savedShowInactive !== null) {
+                const parsed = JSON.parse(savedShowInactive);
+                if (parsed !== this.showInactive) {
+                  this.showInactive = parsed;
+                  const filterBtn = document.getElementById("showInactiveFilter");
+                  if (filterBtn) {
+                    filterBtn.setAttribute("aria-pressed", String(parsed));
+                    filterBtn.setAttribute("aria-label", parsed ? "Hide inactive templates" : "Show inactive templates");
+                    filterBtn.title = parsed ? "Hide inactive templates" : "Show inactive templates";
+                  }
+                }
+              }
+            } catch (err) {
+              log.warn("Could not sync showInactive:", err);
+            }
+
             this.renderUI({ categorySelect: true });
 
             const templateExists =
@@ -6397,6 +6772,26 @@ class TemplateManager {
           };
 
           await this.loadData(false);
+
+          // Sync showInactive preference from localStorage
+          try {
+            const savedShowInactive = localStorage.getItem(StorageManager.KEYS.SHOW_INACTIVE);
+            if (savedShowInactive !== null) {
+              const parsed = JSON.parse(savedShowInactive);
+              if (parsed !== this.showInactive) {
+                this.showInactive = parsed;
+                const filterBtn = document.getElementById("showInactiveFilter");
+                if (filterBtn) {
+                  filterBtn.setAttribute("aria-pressed", String(parsed));
+                  filterBtn.setAttribute("aria-label", parsed ? "Hide inactive templates" : "Show inactive templates");
+                  filterBtn.title = parsed ? "Hide inactive templates" : "Show inactive templates";
+                }
+              }
+            }
+          } catch (err) {
+            log.warn("Could not sync showInactive:", err);
+          }
+
           this.renderUI({ all: true });
 
           const changes = {
@@ -7143,6 +7538,42 @@ class TemplateManager {
         "keydown",
         this.eventHandlers.searchEscape,
       );
+
+      // Show inactive toggle
+      const showInactiveFilter = document.getElementById("showInactiveFilter");
+      if (showInactiveFilter) {
+        if (this.eventHandlers.showInactiveChange) {
+          showInactiveFilter.removeEventListener(
+            "click",
+            this.eventHandlers.showInactiveChange,
+          );
+        }
+        this.eventHandlers.showInactiveChange = (e) => {
+          e.preventDefault();
+          const filterBtn = e.currentTarget;
+          const newPressed = !(filterBtn.getAttribute("aria-pressed") === "true");
+          this.showInactive = newPressed;
+          filterBtn.setAttribute("aria-pressed", String(newPressed));
+          filterBtn.setAttribute("aria-label", newPressed ? "Hide inactive templates" : "Show inactive templates");
+          filterBtn.title = newPressed ? "Hide inactive templates" : "Show inactive templates";
+          // Persist preference to localStorage
+          try {
+            localStorage.setItem(StorageManager.KEYS.SHOW_INACTIVE, JSON.stringify(this.showInactive));
+          } catch (err) {
+            log.warn("Could not persist showInactive:", err);
+          }
+          this.renderUI({ templates: true });
+          // Refresh an open smart-search dropdown immediately.
+          if (this.smartSearch?.state?.isOpen && this.smartSearch.state.searchTerm) {
+            this.smartSearch.performSearch(this.smartSearch.state.searchTerm);
+          }
+        };
+        this._trackListener(
+          showInactiveFilter,
+          "click",
+          this.eventHandlers.showInactiveChange,
+        );
+      }
     } catch (error) {
       log.error("Failed to setup search listener:", error);
     }
@@ -7266,9 +7697,24 @@ class TemplateManager {
       if (this.eventHandlers.templateGridClick) {
         grid.removeEventListener("click", this.eventHandlers.templateGridClick);
       }
+      if (this.eventHandlers.templateGridKeydown) {
+        grid.removeEventListener("keydown", this.eventHandlers.templateGridKeydown);
+      }
 
       this.eventHandlers.templateGridClick = (e) => {
         try {
+          // ── Toggle switch click ──
+          const toggleEl = e.target.closest(".toggle-switch");
+          if (toggleEl) {
+            e.stopPropagation();
+            const templateId = toggleEl.dataset.templateId;
+            const action = toggleEl.dataset.action;
+            if (templateId && action) {
+              this.handleTemplateAction(action, templateId);
+            }
+            return;
+          }
+
           // Click to View: open preview for truncated content
           const contentEl = e.target.closest(
             ".template-content-wrap, .template-content",
@@ -7309,6 +7755,22 @@ class TemplateManager {
       };
 
       this._trackListener(grid, "click", this.eventHandlers.templateGridClick);
+
+      this.eventHandlers.templateGridKeydown = (e) => {
+        const toggleEl = e.target.closest(".toggle-switch");
+        if (!toggleEl) return;
+
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const templateId = toggleEl.dataset.templateId;
+          const action = toggleEl.dataset.action;
+          if (templateId && action) {
+            this.handleTemplateAction(action, templateId);
+          }
+        }
+      };
+
+      this._trackListener(grid, "keydown", this.eventHandlers.templateGridKeydown);
     } catch (error) {
       log.error("Failed to setup template listeners:", error);
     }
@@ -7416,7 +7878,10 @@ class TemplateManager {
 
       this.eventHandlers.gridDragStart = (e) => {
         try {
-          if (e.target.closest(".template-actions button")) {
+          if (
+            e.target.closest(".template-actions button") ||
+            e.target.closest(".toggle-switch")
+          ) {
             return;
           }
 
@@ -8421,10 +8886,57 @@ class TemplateManager {
             stats: true,
           });
         } else {
-          this.renderUI({
-            templateCard: id,
-            stats: true,
-          });
+          // Check if this is a toggle-only change (active changed, nothing else)
+          const isToggleOnly =
+            updates.active !== undefined &&
+            updates.name === undefined &&
+            updates.content === undefined &&
+            updates.tags === undefined &&
+            updates.order === undefined;
+
+          if (isToggleOnly) {
+            // Update toggle switch IN-PLACE for CSS animation
+            const card = document.querySelector(`[data-template-id="${id}"]`);
+            if (card && card.isConnected) {
+              const toggleEl = card.querySelector(".toggle-switch");
+              const isActive = this.templates[index].active !== false;
+
+              if (toggleEl) {
+                toggleEl.setAttribute("aria-checked", String(isActive));
+                toggleEl.dataset.action = isActive ? "deactivate" : "activate";
+                toggleEl.setAttribute(
+                  "aria-label",
+                  isActive ? "Deactivate template" : "Activate template",
+                );
+              }
+
+              // Toggle inactive class on card
+              if (isActive) {
+                card.classList.remove("inactive");
+              } else {
+                card.classList.add("inactive");
+              }
+
+              // Update stats immediately
+              this.renderUI({ stats: true });
+
+              // Reposition card after animation completes (350ms)
+              // Use a flag to avoid duplicate reposition timers
+              clearTimeout(this._toggleRepositionTimer);
+              this._toggleRepositionTimer = setTimeout(() => {
+                this.renderUI({ templates: true });
+              }, 350);
+            } else {
+              // Card not in DOM, fallback to full render
+              this.renderUI({ templates: true, stats: true });
+            }
+          } else {
+            // Name/content/tags change — use card replacement (no animation needed)
+            this.renderUI({
+              templateCard: id,
+              stats: true,
+            });
+          }
         }
 
         const templateName = this.templates[index].name;
@@ -9234,6 +9746,19 @@ class TemplateManager {
         return;
       }
 
+      // Cannot reorder between active and inactive groups
+      if ((draggedTemplate.active !== false) !== (targetTemplate.active !== false)) {
+        log.info("Cannot reorder between active and inactive groups");
+
+        const draggedActive = draggedTemplate.active !== false;
+        const targetActive = targetTemplate.active !== false;
+
+        ToastManager.info(
+          `Cannot reorder between active and inactive templates. Both must be in the same state.`,
+        );
+        return;
+      }
+
       const backup = {
         templates: JSON.parse(JSON.stringify(this.templates)),
         timestamp: Date.now(),
@@ -9901,6 +10426,15 @@ class TemplateManager {
       }
 
       // ============================================
+      // FILTRARE PE ACTIVE/INACTIVE
+      // ============================================
+      if (!this.showInactive) {
+        filtered = filtered.filter(
+          (template) => template && template.active !== false,
+        );
+      }
+
+      // ============================================
       // FILTRARE PE SEARCH TERM
       // ============================================
       if (this.searchTerm?.trim()) {
@@ -10006,7 +10540,14 @@ class TemplateManager {
           if (indexB === undefined) return -1;
         }
 
-        // Nivel 2: Order manual
+        // Nivel 2: Active templates first, inactive at bottom
+        const activeA = a.active !== false;
+        const activeB = b.active !== false;
+        if (activeA !== activeB) {
+          return activeA ? -1 : 1;
+        }
+
+        // Nivel 3: Order manual (only among same active status)
         const orderA = typeof a.order === "number" ? a.order : 0;
         const orderB = typeof b.order === "number" ? b.order : 0;
 
@@ -10014,7 +10555,7 @@ class TemplateManager {
           return orderA - orderB;
         }
 
-        // Nivel 3: Alfabetic
+        // Nivel 4: Alfabetic
         const nameA = (a.name || "").toLowerCase();
         const nameB = (b.name || "").toLowerCase();
 
@@ -10147,6 +10688,17 @@ class TemplateManager {
       try {
         operations.push("stats");
         this.renderStats();
+        // Update inactive badge
+        const inactiveCount = this.templates.filter((t) => t && t.active === false).length;
+        const badge = document.getElementById("inactiveBadge");
+        if (badge) {
+          if (inactiveCount > 0) {
+            badge.textContent = String(inactiveCount);
+            badge.removeAttribute("data-empty");
+          } else {
+            badge.setAttribute("data-empty", "true");
+          }
+        }
       } catch (error) {
         hasErrors = true;
         log.error("Error rendering stats:", error);
@@ -10208,6 +10760,17 @@ class TemplateManager {
       try {
         operations.push("stats");
         this.renderStats();
+        // Update inactive badge
+        const inactiveCount = this.templates.filter((t) => t && t.active === false).length;
+        const badge = document.getElementById("inactiveBadge");
+        if (badge) {
+          if (inactiveCount > 0) {
+            badge.textContent = String(inactiveCount);
+            badge.removeAttribute("data-empty");
+          } else {
+            badge.setAttribute("data-empty", "true");
+          }
+        }
       } catch (error) {
         hasErrors = true;
         log.error("Error rendering stats:", error);
@@ -10524,7 +11087,7 @@ class TemplateManager {
           : "#667eea";
       card.style.setProperty("--category-color", safeColor);
 
-      // ── Header: title-area (title + category) + drag handle ──
+      // ── Header: title-area (title + category) + toggle switch ──
       const header = document.createElement("div");
       header.className = "card-header";
 
@@ -10552,12 +11115,21 @@ class TemplateManager {
       );
       titleArea.appendChild(categoryBadgeHeader);
 
-      const dragHandle = document.createElement("div");
-      dragHandle.className = "drag-handle";
-      dragHandle.setAttribute("aria-label", "Drag to reorder");
-      dragHandle.innerHTML = `<svg class="drag-dots" width="12" height="20" viewBox="0 0 12 20" fill="currentColor" aria-hidden="true"><circle cx="2" cy="2" r="2"/><circle cx="10" cy="2" r="2"/><circle cx="2" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="2" cy="18" r="2"/><circle cx="10" cy="18" r="2"/></svg>`;
+      // Toggle switch — replaces drag handle
+      const toggleSwitch = document.createElement("button");
+      toggleSwitch.type = "button";
+      toggleSwitch.className = "toggle-switch";
+      toggleSwitch.setAttribute("role", "switch");
+      toggleSwitch.setAttribute("aria-checked", String(template.active !== false));
+      toggleSwitch.dataset.action = template.active === false ? "activate" : "deactivate";
+      toggleSwitch.dataset.templateId = template.id;
+      toggleSwitch.setAttribute("aria-label", template.active === false ? "Activate template" : "Deactivate template");
 
-      header.append(titleArea, dragHandle);
+      const toggleThumb = document.createElement("span");
+      toggleThumb.className = "toggle-thumb";
+      toggleSwitch.appendChild(toggleThumb);
+
+      header.append(titleArea, toggleSwitch);
 
       // ── Content preview ──
       const contentWrap = document.createElement("div");
@@ -10609,15 +11181,6 @@ class TemplateManager {
       const SVG_COPY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
       const SVG_EDIT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
       const SVG_DELETE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
-      const SVG_TOGGLE_ON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
-      const SVG_TOGGLE_OFF = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>`;
-      const toggleAction = template.active === false ? "activate" : "deactivate";
-      const toggleSvg = template.active === false ? SVG_TOGGLE_OFF : SVG_TOGGLE_ON;
-      const toggleBtn = this.createActionButton(
-        toggleAction,
-        toggleSvg,
-        template.active === false ? "Activate template" : "Deactivate template",
-      );
       const copyBtn = this.createActionButton(
         "copy",
         SVG_COPY,
@@ -10634,7 +11197,7 @@ class TemplateManager {
         "Delete template",
       );
 
-      btnGroup.append(copyBtn, editBtn, toggleBtn, deleteBtn);
+      btnGroup.append(copyBtn, editBtn, deleteBtn);
       actions.appendChild(btnGroup);
 
       const footerRow = document.createElement("div");
@@ -11517,6 +12080,13 @@ class TemplateManager {
         }
       }
 
+      if (this.eventHandlers.showInactiveChange) {
+        const showInactiveFilter = document.getElementById("showInactiveFilter");
+        if (showInactiveFilter) {
+          showInactiveFilter.removeEventListener("click", this.eventHandlers.showInactiveChange);
+        }
+      }
+
       if (this.eventHandlers.emptyStateClick) {
         const grid = document.getElementById("templatesGrid");
         if (grid) {
@@ -11531,6 +12101,13 @@ class TemplateManager {
             "click",
             this.eventHandlers.templateGridClick,
           );
+        }
+      }
+
+      if (this.eventHandlers.templateGridKeydown) {
+        const grid = document.getElementById("templatesGrid");
+        if (grid) {
+          grid.removeEventListener("keydown", this.eventHandlers.templateGridKeydown);
         }
       }
 
@@ -11662,6 +12239,10 @@ class TemplateManager {
         clearTimeout(this._deleteRenderTimeout);
         this._deleteRenderTimeout = null;
       }
+      if (this._toggleRepositionTimer) {
+        clearTimeout(this._toggleRepositionTimer);
+        this._toggleRepositionTimer = null;
+      }
 
       this.eventHandlers = {
         headerClick: null,
@@ -11670,8 +12251,10 @@ class TemplateManager {
         searchInput: null,
         searchClear: null,
         searchEscape: null,
+        showInactiveChange: null,
         emptyStateClick: null,
         templateGridClick: null,
+        templateGridKeydown: null,
         gridDragStart: null,
         gridDragEnd: null,
         gridDragOver: null,
@@ -11801,14 +12384,14 @@ async function initApp() {
 								justify-content: center;
 								font-size: 3rem;
 							">❌</div>
-							
+
 							<h1 style="
 								color: #dc2626;
 								margin: 0 0 1rem 0;
 								font-size: 1.75rem;
 								font-weight: 700;
 							">Failed to Initialize</h1>
-							
+
 							<p style="
 								color: #4b5563;
 								margin: 0 0 1.5rem 0;
@@ -11817,7 +12400,7 @@ async function initApp() {
 							">
 								The Template Manager could not start due to an error:
 							</p>
-							
+
 							<pre style="
 								background: #fef2f2;
 								color: #dc2626;
@@ -11830,14 +12413,14 @@ async function initApp() {
 								border: 1px solid #fecaca;
 								margin: 0 0 1.5rem 0;
 							">${safeEscape(error.message || "Unknown error")}</pre>
-							
+
 							<div style="
 								display: flex;
 								gap: 0.75rem;
 								flex-direction: column;
 							">
-								<button 
-									onclick="location.reload()" 
+								<button
+									onclick="location.reload()"
 									style="
 										background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 										color: white;
@@ -11854,9 +12437,9 @@ async function initApp() {
 								>
 									🔄 Reload Page
 								</button>
-								
-								<button 
-									onclick="localStorage.clear(); location.reload();" 
+
+								<button
+									onclick="localStorage.clear(); location.reload();"
 									style="
 										background: #dc2626;
 										color: white;
@@ -11873,7 +12456,7 @@ async function initApp() {
 								>
 									🗑️ Clear Storage & Reload
 								</button>
-								
+
 								<details style="
 									margin-top: 1rem;
 									text-align: left;
